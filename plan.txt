@@ -92,6 +92,7 @@ branding and wording come from per-topic configuration.
 Playing does not require login. Anonymous stats stay in the browser and merge
 into the account at first sign-in.
 
+  - A code only works in the browser that asked for it.
   - Codes have 6 digits, work once, expire after 10 minutes and allow 5
     attempts. Store an HMAC keyed with a server secret, not a plain hash.
   - Rate-limit requests per email and per IP. Respond identically whether or
@@ -115,7 +116,8 @@ Each topic's database contains:
   contributions    Append-only: user, action, item, time
   candidates       Generated games awaiting review
   reviews          Contributor verdicts and feedback
-  published_games  Unique serve date, status, snapshot
+  jobs             Queued work, such as generating candidates
+  published_games  Unique serve date (empty while unscheduled), snapshot
   game_entries     game_id, link_id, word_id, category_id
   plays            One per user per game
 
