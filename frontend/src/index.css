@@ -8,6 +8,7 @@ body {
 }
 header {
   display: flex;
+  flex-wrap: wrap;
   justify-content: space-between;
   padding: 1rem;
 }
@@ -16,7 +17,12 @@ header {
 }
 nav {
   display: flex;
+  flex-wrap: wrap;
+  align-items: center;
   gap: 1rem;
+}
+.email {
+  overflow-wrap: anywhere;
 }
 main {
   max-width: 32rem;
