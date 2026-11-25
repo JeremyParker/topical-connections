@@ -6,6 +6,7 @@ RUN uv sync --locked --no-dev --no-cache
 COPY alembic.ini topics.toml ./
 COPY migrations migrations/
 COPY app app/
+COPY generator generator/
 ENV PATH="/srv/.venv/bin:$PATH" PYTHONUNBUFFERED=1 PYTHONDONTWRITEBYTECODE=1
 USER nobody
 EXPOSE 8000

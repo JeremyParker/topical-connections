@@ -42,6 +42,26 @@ export type Summary = {
   words_with_one_meaning: number;
 };
 export type BulkResult = Record<"created" | "linked" | "already_there" | "invalid", string[]>;
+export type Game = {
+  groups: {
+    category_id: number;
+    name: string;
+    difficulty: number;
+    is_topical: boolean;
+    words: { word_id: number; link_id: number; text: string }[];
+  }[];
+  scores: Record<string, number>;
+  decoys: { word: string; also_fits: string[] }[];
+  red_herrings: { name: string; words: string[] }[];
+};
+export type Candidate = { id: number; score: number; created_at: string; game: Game };
+export type Job = {
+  id: number;
+  status: "queued" | "running" | "done" | "failed";
+  result: { created: number; problem: string | null } | null;
+  error: string | null;
+};
+export type Suggestions = Record<"almost_usable" | "isolated", { id: number; name: string }[]>;
 type Created = { id: number };
 export type ListParams = { search?: string; only?: string; offset?: number };
 
@@ -81,4 +101,10 @@ export const studio = {
   updateLink: (id: number, fields: Partial<LinkFields>) =>
     call<void>("PATCH", `/studio/links/${id}`, fields),
   deleteLink: (id: number) => call<void>("DELETE", `/studio/links/${id}`),
+
+  generate: (count: number) => call<Job>("POST", "/studio/jobs", { count }),
+  job: (id: number) => call<Job>("GET", `/studio/jobs/${id}`),
+  candidates: (params: ListParams) =>
+    call<Page<Candidate>>("GET", `/studio/candidates${query(params)}`),
+  suggestions: () => call<Suggestions>("GET", "/studio/suggestions"),
 };

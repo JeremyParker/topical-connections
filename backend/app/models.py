@@ -165,6 +165,7 @@ class Job(Created, Base):
     params: Mapped[dict[str, Any]] = mapped_column(server_default=text("'{}'::jsonb"))
     status: Mapped[str] = mapped_column(String(20), server_default="queued", index=True)
     requested_by: Mapped[int | None] = mapped_column(ForeignKey("users.id"))
+    result: Mapped[dict[str, Any] | None]
     error: Mapped[str | None]
     finished_at: Mapped[datetime | None]
 

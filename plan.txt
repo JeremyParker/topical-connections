@@ -152,6 +152,15 @@ Fixes compared with the old schema:
      4 groups covers all 16 words.
   5. Score overlap, topical mix, difficulty spread and freshness.
 
+Scores are out of 100: decoys 30, red herrings 20, difficulty spread 20,
+topical mix 15, freshness 15. A decoy is a word that fits another group in the
+game. A red herring is a category outside the game that 3 or more words fit.
+Every game has at least one topical and one non-topical category.
+
+The same word and category can't repeat within 30 days. After that the penalty
+halves every 90 days, and the category penalty halves every 14. These numbers
+are first guesses, to be tuned against reviews.
+
 Reuse rules:
   Same word, same category        Minimum gap, then a strong penalty that
                                   fades over time
@@ -180,6 +189,9 @@ Content entry must therefore be fast:
   - List categories that need more words.
   - List words with only one meaning.
   - Suggest links that would unlock the most new games.
+
+Candidates are saved copies, so the graph may change after they're generated.
+Check a candidate for a single solution again when it is approved.
 
 Missing links can hide a second solution. Reviewers therefore play each
 candidate blind before approving or rejecting it. A "this word also fits..."

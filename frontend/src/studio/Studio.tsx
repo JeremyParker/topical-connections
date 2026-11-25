@@ -2,6 +2,7 @@ import { NavLink, Route, Routes, useParams } from "react-router-dom";
 import type { Topic } from "../api";
 import CategoryList from "./CategoryList";
 import CategoryPage from "./CategoryPage";
+import Games from "./Games";
 import Overview from "./Overview";
 import "./studio.css";
 import WordList from "./WordList";
@@ -16,6 +17,7 @@ export default function Studio({ topic }: { topic: Topic }) {
         </NavLink>
         <NavLink to="/studio/categories">Categories</NavLink>
         <NavLink to="/studio/words">Words</NavLink>
+        <NavLink to="/studio/games">Games</NavLink>
       </nav>
       <Routes>
         <Route index element={<Overview />} />
@@ -23,6 +25,7 @@ export default function Studio({ topic }: { topic: Topic }) {
         <Route path="categories/:id" element={<KeyedCategory topic={topic} />} />
         <Route path="words" element={<WordList />} />
         <Route path="words/:id" element={<KeyedWord topic={topic} />} />
+        <Route path="games" element={<Games />} />
         <Route path="*" element={<p>Page not found.</p>} />
       </Routes>
     </div>
