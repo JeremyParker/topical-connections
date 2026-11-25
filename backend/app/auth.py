@@ -10,7 +10,7 @@ from pydantic import BaseModel, EmailStr, Field
 from sqlalchemy import delete, func, select
 from sqlalchemy.dialects.postgresql import insert
 
-from .config import Settings
+from .config import Settings, Topic
 from .mailer import MailError
 from .models import LoginCode, Session, User
 from .topics import CurrentTopic, Db
@@ -23,7 +23,7 @@ MAX_CODES_PER_EMAIL = 5
 MAX_CODES_PER_IP = 20
 
 log = logging.getLogger("uvicorn.error")
-router = APIRouter(prefix="/api/auth", tags=["auth"])
+router = APIRouter(prefix="/api/{topic_slug}/auth", tags=["auth"])
 
 
 def get_app_settings(request: Request) -> Settings:
@@ -38,9 +38,10 @@ def keyed_hash(settings: Settings, *parts: str) -> str:
     return hmac.new(settings.secret_key.encode(), message, hashlib.sha256).hexdigest()
 
 
-def cookie_name(settings: Settings) -> str:
+def cookie_name(settings: Settings, topic: Topic) -> str:
+    # Named by topic, so that topics sharing a host don't share a session.
     # Browsers force __Host- cookies to be Secure and limited to this exact host.
-    return "__Host-session" if settings.is_production else "session"
+    return f"{'__Host-' if settings.is_production else ''}session-{topic.slug}"
 
 
 def client_ip(request: Request, settings: Settings) -> str:
@@ -163,7 +164,7 @@ def verify_code(
     db.commit()
 
     response.set_cookie(
-        cookie_name(settings),
+        cookie_name(settings, topic),
         token,
         max_age=int(SESSION_TTL.total_seconds()),
         path="/",
@@ -175,7 +176,7 @@ def verify_code(
 
 
 def session_hash(request: Request, topic: CurrentTopic, settings: AppSettings) -> str | None:
-    token = request.cookies.get(cookie_name(settings))
+    token = request.cookies.get(cookie_name(settings, topic))
     return keyed_hash(settings, topic.slug, "session", token) if token else None
 
 
@@ -215,12 +216,18 @@ def me(user: CurrentUser) -> UserOut:
 
 
 @router.post("/logout", status_code=204)
-def logout(response: Response, token_hash: SessionHash, db: Db, settings: AppSettings) -> None:
+def logout(
+    response: Response,
+    token_hash: SessionHash,
+    topic: CurrentTopic,
+    db: Db,
+    settings: AppSettings,
+) -> None:
     if token_hash:
         db.execute(delete(Session).where(Session.token_hash == token_hash))
         db.commit()
     response.delete_cookie(
-        cookie_name(settings),
+        cookie_name(settings, topic),
         path="/",
         httponly=True,
         secure=settings.is_production,

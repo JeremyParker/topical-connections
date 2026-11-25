@@ -2,7 +2,7 @@ from collections.abc import Iterator
 from dataclasses import dataclass
 from typing import Annotated
 
-from fastapi import Depends, HTTPException, Request
+from fastapi import Depends, HTTPException, Path, Request
 from sqlalchemy import Engine, create_engine
 from sqlalchemy.orm import Session as DbSession
 from sqlalchemy.orm import sessionmaker
@@ -18,10 +18,10 @@ class TopicRuntime:
 
 
 class TopicRegistry:
-    """Finds a topic, and so its database, from a request's hostname."""
+    """Finds a topic, and so its database, from its slug."""
 
     def __init__(self, topics: list[Topic]):
-        self._by_host: dict[str, TopicRuntime] = {}
+        self._by_slug: dict[str, TopicRuntime] = {}
         self.runtimes: list[TopicRuntime] = []
         for topic in topics:
             # pre_ping because the database may have gone to sleep since last use
@@ -30,19 +30,19 @@ class TopicRegistry:
             )
             runtime = TopicRuntime(topic, engine, sessionmaker(engine, expire_on_commit=False))
             self.runtimes.append(runtime)
-            for host in topic.hosts:
-                self._by_host[host] = runtime
+            self._by_slug[topic.slug] = runtime
 
-    def for_host(self, host: str | None) -> TopicRuntime | None:
-        return self._by_host.get((host or "").lower())
+    def for_slug(self, slug: str) -> TopicRuntime | None:
+        return self._by_slug.get(slug)
 
     def dispose(self) -> None:
         for runtime in self.runtimes:
             runtime.engine.dispose()
 
 
-def get_runtime(request: Request) -> TopicRuntime:
-    runtime = request.app.state.topics.for_host(request.url.hostname)
+def get_runtime(topic_slug: Annotated[str, Path()], request: Request) -> TopicRuntime:
+    """The one place where a request's topic, and so its database, is decided."""
+    runtime = request.app.state.topics.for_slug(topic_slug)
     if runtime is None:
         raise HTTPException(404, "Not found")
     # CORS allows the origins of every topic, so check this topic's here.

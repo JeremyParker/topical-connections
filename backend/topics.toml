@@ -1,7 +1,8 @@
 # One entry per topic. Each topic has its own database, whose URL comes from
 # the environment variable named in database_url_env.
 #
-# hosts:   hostnames the API answers on for this topic
+# The slug in [brackets] is part of its API URLs: /api/<slug>/...
+#
 # origins: browser origins allowed to call the API for this topic
 
 [music]
@@ -9,5 +10,4 @@ name = "FourFour"
 topical_label = "is a musical category"
 email_from = "FourFour <login@example.com>" # TODO: set once we have a domain
 database_url_env = "DATABASE_URL_MUSIC"
-hosts = ["localhost", "127.0.0.1"]
 origins = ["http://localhost:5173"]

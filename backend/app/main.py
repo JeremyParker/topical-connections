@@ -50,7 +50,7 @@ def create_app(settings: Settings | None = None, mailer: Mailer | None = None) -
         # Doesn't touch a database, so health checks won't keep one awake.
         return {"status": "ok"}
 
-    @app.get("/api/topic")
+    @app.get("/api/{topic_slug}/topic")
     def topic(topic: CurrentTopic) -> TopicOut:
         return TopicOut(name=topic.name, topical_label=topic.topical_label)
 

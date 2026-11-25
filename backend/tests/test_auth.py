@@ -12,13 +12,13 @@ EMAIL = "player@example.com"
 
 
 def request_code(client, email=EMAIL):
-    response = client.post("/api/auth/code", json={"email": email})
+    response = client.post("/auth/code", json={"email": email})
     assert response.status_code == 200, response.text
     return response.json()["challenge"]
 
 
 def verify(client, challenge, code):
-    return client.post("/api/auth/verify", json={"challenge": challenge, "code": code})
+    return client.post("/auth/verify", json={"challenge": challenge, "code": code})
 
 
 def sign_in(client, mailer, email=EMAIL):
@@ -33,20 +33,20 @@ def wrong(code):
 
 
 def test_sign_in_and_out(music, mailer):
-    assert music.get("/api/auth/me").status_code == 401
+    assert music.get("/auth/me").status_code == 401
     response = sign_in(music, mailer, "Player@Example.com")
     assert response.json() == {"email": EMAIL, "display_name": None, "role": "player"}
-    assert music.get("/api/auth/me").json()["email"] == EMAIL
+    assert music.get("/auth/me").json()["email"] == EMAIL
 
-    token = music.cookies["__Host-session"]
-    assert music.post("/api/auth/logout").status_code == 204
-    music.cookies.set("__Host-session", token)
-    assert music.get("/api/auth/me").status_code == 401  # revoked on the server too
+    token = music.cookies["__Host-session-music"]
+    assert music.post("/auth/logout").status_code == 204
+    music.cookies.set("__Host-session-music", token)
+    assert music.get("/auth/me").status_code == 401  # revoked on the server too
 
 
 def test_cookie_is_locked_down(music, mailer):
     cookie = sign_in(music, mailer).headers["set-cookie"].lower()
-    assert cookie.startswith("__host-session=")
+    assert cookie.startswith("__host-session-music=")
     for part in ("httponly", "secure", "samesite=lax", "path=/"):
         assert part in cookie
     assert "domain=" not in cookie
@@ -59,7 +59,9 @@ def test_secrets_are_not_stored(music, mailer, music_db):
     stored = {row.code_hash, row.challenge_hash, row.ip_hash}
     assert not stored & {code, challenge, "testclient"}
     verify(music, challenge, code)
-    assert music_db.scalars(select(Session)).one().token_hash != music.cookies["__Host-session"]
+    assert (
+        music_db.scalars(select(Session)).one().token_hash != music.cookies["__Host-session-music"]
+    )
 
 
 def test_returning_user_keeps_one_account(music, mailer, music_db):
@@ -117,14 +119,14 @@ def test_parallel_guesses_cannot_exceed_attempt_limit(music, mailer, music_db):
 def test_email_rate_limit(music, mailer):
     for _ in range(auth.MAX_CODES_PER_EMAIL):
         request_code(music)
-    assert music.post("/api/auth/code", json={"email": EMAIL.upper()}).status_code == 429
+    assert music.post("/auth/code", json={"email": EMAIL.upper()}).status_code == 429
     assert len(mailer.sent) == auth.MAX_CODES_PER_EMAIL
     request_code(music, "someone.else@example.com")
 
 
 def test_parallel_requests_cannot_exceed_rate_limit(music, mailer):
     def post(_):
-        return music.post("/api/auth/code", json={"email": EMAIL}).status_code
+        return music.post("/auth/code", json={"email": EMAIL}).status_code
 
     with ThreadPoolExecutor(10) as pool:
         statuses = list(pool.map(post, range(12)))
@@ -134,14 +136,14 @@ def test_parallel_requests_cannot_exceed_rate_limit(music, mailer):
 def test_ip_rate_limit(music):
     for i in range(auth.MAX_CODES_PER_IP):
         request_code(music, f"user{i}@example.com")
-    assert music.post("/api/auth/code", json={"email": "more@example.com"}).status_code == 429
+    assert music.post("/auth/code", json={"email": "more@example.com"}).status_code == 429
 
 
 def test_spoofed_ip_header_is_ignored_unless_configured(music):
     for i in range(auth.MAX_CODES_PER_IP):
         request_code(music, f"user{i}@example.com")
     response = music.post(
-        "/api/auth/code", json={"email": "more@example.com"}, headers={"Fly-Client-IP": "1.2.3.4"}
+        "/auth/code", json={"email": "more@example.com"}, headers={"Fly-Client-IP": "1.2.3.4"}
     )
     assert response.status_code == 429
 
@@ -150,17 +152,17 @@ def test_expired_session(music, mailer, music_db):
     sign_in(music, mailer)
     music_db.execute(update(Session).values(expires_at=datetime.now(UTC) - timedelta(seconds=1)))
     music_db.commit()
-    assert music.get("/api/auth/me").status_code == 401
+    assert music.get("/auth/me").status_code == 401
 
 
 def test_mail_failure_is_reported(music, mailer):
     mailer.broken = True
-    assert music.post("/api/auth/code", json={"email": EMAIL}).status_code == 503
+    assert music.post("/auth/code", json={"email": EMAIL}).status_code == 503
 
 
 @pytest.mark.parametrize("email", ["", "nope", "a@b", "x@example.com\nBcc: y@example.com"])
 def test_bad_email_rejected(music, mailer, email):
-    assert music.post("/api/auth/code", json={"email": email}).status_code == 422
+    assert music.post("/auth/code", json={"email": email}).status_code == 422
     assert mailer.sent == []
 
 

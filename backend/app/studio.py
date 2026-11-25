@@ -21,7 +21,7 @@ WORDS_PER_GROUP = 4
 GRAPH_LOCK = 4444
 
 router = APIRouter(
-    prefix="/api/studio",
+    prefix="/api/{topic_slug}/studio",
     tags=["studio"],
     dependencies=[Depends(require_role("contributor", "admin"))],
 )
