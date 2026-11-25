@@ -5,7 +5,7 @@ import Home from "./pages/Home";
 import SignIn from "./pages/SignIn";
 
 // Loaded only when needed, so players don't download it.
-const Studio = lazy(() => import("./pages/Studio"));
+const Studio = lazy(() => import("./studio/Studio"));
 
 export default function App() {
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -56,8 +56,8 @@ export default function App() {
             <Route path="/" element={<Home topic={topic} />} />
             <Route path="/sign-in" element={<SignIn onSignedIn={setUser} />} />
             <Route
-              path="/studio"
-              element={canEdit ? <Studio /> : <p>The studio is for contributors.</p>}
+              path="/studio/*"
+              element={canEdit ? <Studio topic={topic} /> : <p>The studio is for contributors.</p>}
             />
             <Route path="*" element={<p>Page not found.</p>} />
           </Routes>
