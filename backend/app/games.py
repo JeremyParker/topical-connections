@@ -27,7 +27,7 @@ JOB_LOCK = 4445
 
 log = logging.getLogger("uvicorn.error")
 router = APIRouter(
-    prefix="/api/studio",
+    prefix="/api/{topic_slug}/studio",
     tags=["games"],
     dependencies=[Depends(require_role("contributor", "admin"))],
 )

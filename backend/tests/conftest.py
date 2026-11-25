@@ -47,7 +47,6 @@ name = "{slug} game"
 topical_label = "is about {slug}"
 email_from = "login@{slug}.test"
 database_url_env = "TEST_DATABASE_URL_{slug.upper()}"
-hosts = ["api.{slug}.test"]
 origins = ["https://{slug}.test"]
 """
     path = tmp_path_factory.mktemp("config") / "topics.toml"
@@ -89,21 +88,21 @@ def app(settings, mailer):
 
 @pytest.fixture
 def music(app):
-    return TestClient(app, base_url="https://api.music.test")
+    return TestClient(app, base_url="https://api.test/api/music")
 
 
 @pytest.fixture
 def biology(app):
-    return TestClient(app, base_url="https://api.biology.test")
+    return TestClient(app, base_url="https://api.test/api/biology")
 
 
 @pytest.fixture
 def music_db(app):
-    with app.state.topics.for_host("api.music.test").sessions() as db:
+    with app.state.topics.for_slug("music").sessions() as db:
         yield db
 
 
 @pytest.fixture
 def biology_db(app):
-    with app.state.topics.for_host("api.biology.test").sessions() as db:
+    with app.state.topics.for_slug("biology").sessions() as db:
         yield db

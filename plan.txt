@@ -73,13 +73,17 @@ not cover a database that is always awake. Cache the daily game at the CDN,
 write to the database once per finished game, and budget for a paid tier if
 traffic is steady.
 
-All topics start in the same deployment. The hostname selects the database, and
-branding and wording come from per-topic configuration.
+All topics start in the same deployment. The slug in each API URL, such as
+/api/music/..., selects the database. It works from any client, including a
+future iOS app, and doesn't depend on hostnames or proxies. Each website still
+calls an API address on its own domain, so that browsers accept its cookie, but
+that address doesn't affect which topic is used. Branding and wording come from
+per-topic configuration.
 
   - No query can leak another topic's content by missing a topic filter.
   - User accounts are separate for each topic, even with the same email.
-  - To add a topic: create a database, run migrations, and add a domain and
-    a config entry.
+  - To add a topic: create a database, run migrations, and add a domain,
+    a config entry and a frontend build.
   - To split a topic out later: deploy the same image configured with only
     that topic. Keep all topic settings in configuration, and never query
     across topic databases, so that this stays easy.

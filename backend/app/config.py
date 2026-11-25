@@ -1,4 +1,5 @@
 import os
+import re
 import tomllib
 from dataclasses import dataclass
 from functools import lru_cache
@@ -45,7 +46,6 @@ class Topic:
     topical_label: str
     email_from: str
     database_url: str
-    hosts: tuple[str, ...]
     origins: tuple[str, ...]
 
 
@@ -54,6 +54,10 @@ def load_topics(settings: Settings) -> list[Topic]:
     enabled = {s.strip() for s in settings.enabled_topics.split(",") if s.strip()} or set(raw)
     if unknown := enabled - set(raw):
         raise ValueError(f"ENABLED_TOPICS has unknown topics: {sorted(unknown)}")
+
+    # Slugs appear in URLs and cookie names
+    if bad := [slug for slug in raw if not re.fullmatch(r"[a-z0-9-]+", slug)]:
+        raise ValueError(f"Invalid topic slugs: {bad}")
 
     topics = []
     for slug in sorted(enabled):
@@ -73,14 +77,10 @@ def load_topics(settings: Settings) -> list[Topic]:
                 topical_label=entry["topical_label"],
                 email_from=entry["email_from"],
                 database_url=url,
-                hosts=tuple(h.lower() for h in entry["hosts"]),
                 origins=tuple(entry["origins"]),
             )
         )
 
-    hosts = [h for t in topics for h in t.hosts]
-    if len(hosts) != len(set(hosts)):
-        raise ValueError("Two topics share a hostname")
     urls = [t.database_url for t in topics]
     if len(urls) != len(set(urls)):
         raise ValueError("Two topics share a database")

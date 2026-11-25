@@ -7,7 +7,7 @@ from app.models import Contribution, Link, User, Word
 
 from .test_auth import sign_in
 
-API = "/api/studio"
+API = "/studio"
 
 
 def sign_in_as(client, mailer, db, role):
@@ -69,11 +69,12 @@ ROUTES = [
 
 
 def test_access_checks_cover_every_route(app):
+    prefix = "/api/{topic_slug}/studio"
     paths = app.openapi()["paths"]
     found = {
-        (method.upper(), path.removeprefix(API))
+        (method.upper(), path.removeprefix(prefix))
         for path, methods in paths.items()
-        if path.startswith(API)
+        if path.startswith(prefix)
         for method in methods
     }
     assert len(found) == len(ROUTES)

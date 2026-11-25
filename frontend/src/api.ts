@@ -1,4 +1,5 @@
 const BASE = import.meta.env.VITE_API_BASE ?? "";
+const TOPIC = import.meta.env.VITE_TOPIC; // vite.config.ts makes sure it's set
 
 export type Topic = { name: string; topical_label: string };
 export type User = {
@@ -19,7 +20,7 @@ export class ApiError extends Error {
 export async function call<T>(method: string, path: string, body?: unknown): Promise<T> {
   let response: Response;
   try {
-    response = await fetch(`${BASE}/api${path}`, {
+    response = await fetch(`${BASE}/api/${TOPIC}${path}`, {
       method,
       credentials: "include",
       headers: body === undefined ? undefined : { "Content-Type": "application/json" },

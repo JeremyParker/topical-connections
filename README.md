@@ -28,7 +28,7 @@ To give someone access to the studio (this also invites new users):
 ## Test
 
     cd backend && uv run pytest && uv run ruff check .
-    cd frontend && npm run build
+    cd frontend && VITE_TOPIC=music npm run build
 
 Tests create and drop their own databases, `test_music` and `test_biology`.
 
@@ -46,6 +46,11 @@ Read the generated file before committing it.
 1. Create an empty database.
 2. Add an entry to `backend/topics.toml`, and set its database URL variable.
 3. Run `python -m app.cli migrate --topic <slug>`.
+4. Build the frontend with `VITE_TOPIC=<slug>`, and `VITE_API_BASE` set to an API
+   address on the topic's own domain. Otherwise browsers may block its cookies.
+
+The slug in each URL (`/api/<slug>/...`) selects the topic, and so the database.
+The API address doesn't, so all topics' API addresses can point to one server.
 
 To deploy a topic on its own, set `ENABLED_TOPICS=<slug>`.
 
