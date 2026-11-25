@@ -5,7 +5,7 @@ import Home from "./pages/Home";
 import SignIn from "./pages/SignIn";
 
 // Loaded only when needed, so players don't download it.
-const Studio = lazy(() => import("./pages/Studio"));
+const Studio = lazy(() => import("./studio/Studio"));
 
 export default function App() {
   const [topic, setTopic] = useState<Topic | null>(null);
@@ -43,7 +43,10 @@ export default function App() {
         <nav>
           {canEdit && <Link to="/studio">Studio</Link>}
           {user ? (
-            <button onClick={signOut}>Sign out</button>
+            <>
+              <span className="email">{user.email}</span>
+              <button onClick={signOut}>Sign out</button>
+            </>
           ) : (
             <Link to="/sign-in">Sign in</Link>
           )}
@@ -56,8 +59,8 @@ export default function App() {
             <Route path="/" element={<Home topic={topic} />} />
             <Route path="/sign-in" element={<SignIn onSignedIn={setUser} />} />
             <Route
-              path="/studio"
-              element={canEdit ? <Studio /> : <p>The studio is for contributors.</p>}
+              path="/studio/*"
+              element={canEdit ? <Studio topic={topic} /> : <NoAccess user={user} />}
             />
             <Route path="*" element={<p>Page not found.</p>} />
           </Routes>
@@ -65,4 +68,15 @@ export default function App() {
       </main>
     </>
   );
+}
+
+function NoAccess({ user }: { user: User | null }) {
+  if (!user) {
+    return (
+      <p>
+        The studio is for contributors. Please <Link to="/sign-in">sign in</Link>.
+      </p>
+    );
+  }
+  return <p>You’re signed in as {user.email}, which isn’t a contributor account.</p>;
 }

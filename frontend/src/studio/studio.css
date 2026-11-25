@@ -1,0 +1,45 @@
+main:has(.studio) {
+  max-width: 60rem;
+}
+.studio {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr);
+  gap: 1rem;
+}
+.studio :is(h1, h2, p) {
+  margin: 0;
+}
+.studio nav a.active {
+  font-weight: bold;
+}
+.studio .row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 0.5rem 1rem;
+}
+.studio .grow {
+  flex: 1;
+}
+.studio .check {
+  display: flex;
+  align-items: center;
+  padding-block: 0.5rem;
+}
+.studio :is(select, textarea) {
+  font: inherit;
+  padding: 0.5rem;
+}
+.studio table {
+  display: block;
+  overflow-x: auto;
+  border-collapse: collapse;
+}
+.studio :is(th, td) {
+  padding: 0.25rem 1rem 0.25rem 0;
+  text-align: left;
+}
+.studio summary {
+  cursor: pointer;
+  padding-block: 0.5rem;
+}

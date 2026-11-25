@@ -52,7 +52,6 @@ Python module, but not a separately deployed service.
   backend/migrations/  Alembic database migrations
   frontend/            Vite + React + TypeScript: the game, plus a content
                        area at /studio that loads only when needed
-  tools/               One-off import of the existing words
 
 Generation is an occasional batch job. When a contributor asks for new
 candidates, the app queues a job row, and the same deployed image processes it.
@@ -130,7 +129,8 @@ it. Credits come from contributions to the game's words, links and categories.
 
 History: game_entries plus the serve date show which meaning of each word was
 used and when. Links are soft-deleted so history survives, and changing a
-link's meaning creates a new link.
+link's meaning creates a new link. Adding back a deleted word, category or
+link restores the original, so it keeps its history.
 
 Fixes compared with the old schema:
   - Categories need a difficulty field.
@@ -198,10 +198,10 @@ button lets them add a missing link.
 
 10. MOVING FROM THE OLD DRAFTS
 
-Port the ideas and data rather than translating the code.
+Port the ideas rather than translating the code.
 
-  Keep:     the roughly 50 production words, schema ideas, user stories,
-            game rules and fake-data test fixtures.
+  Keep:     schema ideas, user stories, game rules and fake-data test
+            fixtures.
   Rewrite:  the generator in Python, content screens in React, and game
             state as a reducer.
   Drop:     Laravel/Livewire, Express, Prisma, Create React App, Firebase.
@@ -212,15 +212,17 @@ Notes:
     does not pick 4 words from larger categories.
   - Use connections-admin's move-words-to-livewire branch, which is ahead
     of main.
-  - Export the production words to CSV and import them.
-  - If connections-admin is still live, take it down after the export. Its
+  - FourFour starts with an empty database. The existing words belong to a
+    different topic, so they are not imported. Export them if they may be
+    wanted for that topic later.
+  - If connections-admin is still live, take it down after any export. Its
     edit routes have no auth middleware and it has a public phpinfo page.
 
 
 11. BUILD ORDER
 
   1. Repo, schema, per-topic databases and email login
-  2. Content studio, and import of the existing words
+  2. Content studio
   3. Generator, tested on a synthetic graph while content grows
   4. Blind review and scheduling
   5. Public game, sharing, personal stats and contributor credits

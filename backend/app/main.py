@@ -4,7 +4,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 
-from . import auth
+from . import auth, studio
 from .config import Settings, get_settings, load_topics
 from .mailer import Mailer, make_mailer
 from .topics import CurrentTopic, TopicRegistry
@@ -42,6 +42,7 @@ def create_app(settings: Settings | None = None, mailer: Mailer | None = None) -
         allow_headers=["Content-Type"],
     )
     app.include_router(auth.router)
+    app.include_router(studio.router)
 
     @app.get("/healthz")
     def healthz() -> dict[str, str]:
