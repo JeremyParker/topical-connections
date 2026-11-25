@@ -61,6 +61,10 @@ ROUTES = [
     ("POST", "/links"),
     ("PATCH", "/links/1"),
     ("DELETE", "/links/1"),
+    ("POST", "/jobs"),
+    ("GET", "/jobs/1"),
+    ("GET", "/candidates"),
+    ("GET", "/suggestions"),
 ]
 
 
